@@ -4,6 +4,9 @@ import Footer from "./components/footer/Footer";
 import Home from "./pages/Home";
 import ProductCategory from "./pages/ProductCategory";
 import Product from "./pages/Product";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Cart from "./pages/Cart";
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
           element={<ProductCategory />}
         />
         <Route path={"/product/:slug"} exact={true} element={<Product />} />
+        <Route path={"/login"} exact={true} element={<Login />} />
+        <Route path={"/register"} exact={true} element={<Register />} />
+        <Route path={"/cart"} exact={true} element={<Cart />} />
       </Routes>
       <Footer />
     </BrowserRouter>

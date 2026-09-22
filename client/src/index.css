@@ -138,7 +138,26 @@ svg.MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium.css-1umw9bq-MuiSvgIcon-root{
   background: #ff5252; 
 }
 
+/* product page tabs */
+.css-1a6igjw-MuiButtonBase-root-MuiTab-root{
+  color: #4a4a4a !important;
+  font-size:16px !important;
+  text-transform: capitalize !important;
+  /* font-weight:550 !important; */
+  font-family: "Montserrat", sans-serif !important;
+}
 
+
+.css-1a6igjw-MuiButtonBase-root-MuiTab-root.Mui-selected{
+    font-size: 16px !important;
+    text-transform: capitalize !important;
+    color: #171717 !important;
+}
+
+.MuiTabs-indicator {
+  background-color: #ff5252 !important;
+  height: 2px !important;
+}
 
 /* Shadcn UI CSS */
 @custom-variant dark (&:is(.dark *));

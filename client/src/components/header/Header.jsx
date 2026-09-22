@@ -11,6 +11,7 @@ import Drawer from "@mui/material/Drawer";
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import Button from "@mui/material/Button";
+import { CiTrash } from "react-icons/ci";
 
 const CartBadge = styled(Badge)`
   & .${badgeClasses.badge} {
@@ -28,7 +29,16 @@ function Header() {
   };
 
   const DrawerList = (
-    <Box sx={{ width: 350 }} role="presentation" className="categoryPanel">
+    <Box
+      sx={{
+        width: 350,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      role="presentation"
+      className="categoryPanel"
+    >
       <h3 className="p-4 text-[15px] font-semibold border-b border-gray-300 flex items-center justify-between">
         Shopping Cart (0)
         <IoClose
@@ -36,15 +46,93 @@ function Header() {
           onClick={toggleDrawer(false)}
         />
       </h3>
-      <div className="scroll">
-        <div class="flex items-center justify-center flex-col pt-[100px] gap-5">
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* <div class="flex items-center justify-center flex-col pt-[100px] gap-5">
           <img
             src="https://res.cloudinary.com/hyno2enn/image/upload/v1789674713/empty-cart.png"
             class="w-38"
           />
           <h4 className="text-[14px]">Your cart is currently empty</h4>
+        </div> */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Cart list items */}
+          <div className=" border border-t-0 flex-1">
+            <div className="w-full flex flex-row  py-2">
+              <div className="w-[20%] p-2">
+                <div className="w-15 border p-1 object-contain">
+                  <img
+                    src="https://res.cloudinary.com/hyno2enn/image/upload/v1789478154/imgi_35_1786331761836_csecefcwsecfwecwcewe1.webp"
+                    className=""
+                  />
+                </div>
+              </div>
+              <div className="w-[70%] py-2 px-3 text-[14px] capitalize">
+                <p className="line-clamp-1">
+                  Beige & Blue Printed Silicone Samsung
+                </p>
+                <p className="text-[12px] pt-2 font-medium">T-Shirt</p>
+                <p className="text-[14px] pt-1 font-medium">
+                  1 X <span className="text-[#ff5252]">$36.00</span>
+                </p>
+              </div>
+              <div className="w-[10%] py-2">
+                <CiTrash size={18} className="link cursor-pointer" />
+              </div>
+            </div>
+          </div>
+          {/* Cart list items end here */}
         </div>
-        {/* Cart list item */}
+
+        {/* Cart total */}
+        <div className="border-t pt-4 pb-4 px-4 bg-white mt-auto">
+          {/* Line items */}
+          <div className="flex flex-col gap-1.5 text-[13px]">
+            <div className="flex justify-between">
+              <span className="font-medium">1 item</span>
+              <span className="text-[#ff5252] font-semibold">$86.00</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Shipping</span>
+              <span className="text-[#ff5252] font-semibold">$7.00</span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px bg-gray-200 my-3"></div>
+
+          {/* Totals */}
+          <div className="flex flex-col gap-1.5 text-[13px]">
+            <div className="flex justify-between">
+              <span className="font-semibold">Total (tax excl.)</span>
+              <span className="text-[#ff5252] font-semibold">$93.00</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Total (tax incl.)</span>
+              <span className="text-[#ff5252] font-semibold">$93.00</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Taxes:</span>
+              <span className="text-[#ff5252] font-semibold">$0.00</span>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 mt-4">
+            <button
+              type="button"
+              className="flex-1 py-2.5 bg-[#ff5252] hover:bg-black text-white text-[12px] font-bold uppercase tracking-wider rounded cursor-pointer transition-all"
+            >
+              View Cart
+            </button>
+            <button
+              type="button"
+              className="flex-1 py-2.5 bg-[#ff5252] hover:bg-black text-white text-[12px] font-bold uppercase tracking-wider rounded cursor-pointer transition-all"
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
+        {/* Cart total end here */}
       </div>
     </Box>
   );
@@ -105,13 +193,13 @@ function Header() {
             <div className="w-[30%] lg:w-[30%] flex items-center ">
               <ul className="flex items-center justify-end gap-2 w-full">
                 <li className="list-none">
-                  <Link to={"#"} className="link">
+                  <Link to={"/login"} className="link">
                     Login
                   </Link>
                 </li>
                 <div className="w-px h-6 bg-gray-300"></div>
                 <li className="list-none mr-10">
-                  <Link to={"#"} className="link">
+                  <Link to={"/register"} className="link">
                     SignUp
                   </Link>
                 </li>

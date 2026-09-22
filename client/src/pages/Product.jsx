@@ -1,13 +1,13 @@
 import ProductBreadcrumbs from "@/components/breadcrumbs/ProductBreadcrumbs";
 import ProductDetail from "@/components/product/ProductDetail";
-import RelatedProducts from "@/components/product/RelatedProducts";
+import RelatedProductsSlider from "@/components/product/RelatedProductsSlider";
 
 function Product() {
   return (
     <div>
       <ProductBreadcrumbs />
       <ProductDetail />
-      <RelatedProducts />
+      <RelatedProductsSlider />
     </div>
   );
 }
