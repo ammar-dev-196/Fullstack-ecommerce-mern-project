@@ -45,7 +45,7 @@ function Login() {
           {/* Forgot Password */}
           <div>
             <Link
-              to="#"
+              to={"forgot-password"}
               className="text-[13px] text-[#ff5252] hover:underline font-medium"
             >
               Forgot Password?

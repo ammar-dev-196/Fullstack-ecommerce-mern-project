@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Link } from "react-router";
 import Search from "./Search";
 import { styled } from "@mui/material/styles";
@@ -8,10 +9,20 @@ import { GoHeart } from "react-icons/go";
 import Navbar from "./Navbar";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { IoClose } from "react-icons/io5";
-import Button from "@mui/material/Button";
 import { CiTrash } from "react-icons/ci";
+import { MyContext } from "@/context/Mycontext";
+import { LuUserRound } from "react-icons/lu";
+
+import Avatar from "@mui/material/Avatar";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Divider from "@mui/material/Divider";
+import { RiLogoutCircleRLine } from "react-icons/ri";
+import { LuShoppingBag } from "react-icons/lu";
+import { LuUser } from "react-icons/lu";
 
 const CartBadge = styled(Badge)`
   & .${badgeClasses.badge} {
@@ -21,6 +32,19 @@ const CartBadge = styled(Badge)`
 `;
 
 function Header() {
+  const auth = useContext(MyContext);
+
+  // User account dropdown
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const openAnchorEl = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  // User account dropdown end here
+
   // Cart list item
   const [open, setOpen] = useState(false);
 
@@ -124,12 +148,13 @@ function Header() {
             >
               View Cart
             </button>
-            <button
-              type="button"
-              className="flex-1 py-2.5 bg-[#ff5252] hover:bg-black text-white text-[12px] font-bold uppercase tracking-wider rounded cursor-pointer transition-all"
+            <Link
+              to={"/checkout"}
+              className="flex-1 flex items-center justify-center py-2.5 bg-[#ff5252] hover:bg-black text-white text-[12px] font-bold uppercase tracking-wider rounded cursor-pointer transition-all"
+              onClick={toggleDrawer(false)}
             >
               Checkout
-            </button>
+            </Link>
           </div>
         </div>
         {/* Cart total end here */}
@@ -192,17 +217,128 @@ function Header() {
 
             <div className="w-[30%] lg:w-[30%] flex items-center ">
               <ul className="flex items-center justify-end gap-2 w-full">
-                <li className="list-none">
-                  <Link to={"/login"} className="link">
-                    Login
-                  </Link>
-                </li>
-                <div className="w-px h-6 bg-gray-300"></div>
-                <li className="list-none mr-10">
-                  <Link to={"/register"} className="link">
-                    SignUp
-                  </Link>
-                </li>
+                {auth.isLogin ? (
+                  <>
+                    <li className="list-none">
+                      <Link to={"/login"} className="link">
+                        Login
+                      </Link>
+                    </li>
+                    <div className="w-px h-6 bg-gray-300"></div>
+                    <li className="list-none mr-10">
+                      <Link to={"/register"} className="link">
+                        SignUp
+                      </Link>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="list-none flex flex-row items-center gap-2">
+                      {/* <LuUserRound 
+                    size={32} 
+                    color="gray"
+                    className="bg-[#f1f1f1] p-1 rounded-full hover:bg-[#d6d4d4] cursor-pointer"
+                    />
+                  
+                  <span className="text-[14px] font-medium">Username</span> */}
+
+                      <React.Fragment>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            textAlign: "center",
+                          }}
+                        >
+                          {/* <Tooltip title="Account settings"> */}
+                          <IconButton
+                            onClick={handleClick}
+                            size="small"
+                            sx={{ ml: 2 }}
+                            aria-controls={
+                              openAnchorEl ? "account-menu" : undefined
+                            }
+                            aria-haspopup="true"
+                            aria-expanded={openAnchorEl}
+                          >
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <LuUserRound
+                                size={32}
+                                color="gray"
+                                className="bg-[#f1f1f1] p-1 rounded-full hover:bg-[#d6d4d4] cursor-pointer"
+                              />
+                            </Avatar>
+                          </IconButton>
+                          {/* </Tooltip> */}
+                        </Box>
+                        <Menu
+                          anchorEl={anchorEl}
+                          id="account-menu"
+                          open={openAnchorEl}
+                          onClose={handleClose}
+                          onClick={handleClose}
+                          slotProps={{
+                            paper: {
+                              elevation: 0,
+                              sx: {
+                                overflow: "visible",
+                                filter:
+                                  "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                                mt: 1.5,
+                                "& .MuiAvatar-root": {
+                                  width: 32,
+                                  height: 32,
+                                  ml: -0.5,
+                                  mr: 1,
+                                },
+                                "&::before": {
+                                  content: '""',
+                                  display: "block",
+                                  position: "absolute",
+                                  top: 0,
+                                  right: 14,
+                                  width: 10,
+                                  height: 10,
+                                  bgcolor: "background.paper",
+                                  transform: "translateY(-50%) rotate(45deg)",
+                                  zIndex: 0,
+                                },
+                              },
+                            },
+                          }}
+                          transformOrigin={{
+                            horizontal: "right",
+                            vertical: "top",
+                          }}
+                          anchorOrigin={{
+                            horizontal: "right",
+                            vertical: "bottom",
+                          }}
+                        >
+                          <MenuItem onClick={handleClose}>
+                            <LuUser className="mr-2" />
+                            Profile
+                          </MenuItem>
+                          <MenuItem onClick={handleClose}>
+                            <LuShoppingBag className="mr-2" />
+                            Orders
+                          </MenuItem>
+
+                          <MenuItem onClick={handleClose}>
+                            <GoHeart className="mr-2" />
+                            My Wishlist
+                          </MenuItem>
+
+                          <MenuItem onClick={handleClose}>
+                            <RiLogoutCircleRLine className="mr-2" />
+                            Logout
+                          </MenuItem>
+                        </Menu>
+                      </React.Fragment>
+                    </li>
+                  </>
+                )}
+
                 <li className="list-none">
                   <IconButton aria-label="view cart with 2 items">
                     {/* Wishlist Icon */}
