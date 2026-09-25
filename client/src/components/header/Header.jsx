@@ -315,19 +315,26 @@ function Header() {
                             vertical: "bottom",
                           }}
                         >
-                          <MenuItem onClick={handleClose}>
-                            <LuUser className="mr-2" />
-                            Profile
-                          </MenuItem>
-                          <MenuItem onClick={handleClose}>
-                            <LuShoppingBag className="mr-2" />
-                            Orders
-                          </MenuItem>
+                          <Link to={"/my-account/profile"}>
+                            <MenuItem onClick={handleClose}>
+                              <LuUser className="mr-2" />
+                              Profile
+                            </MenuItem>
+                          </Link>
 
-                          <MenuItem onClick={handleClose}>
-                            <GoHeart className="mr-2" />
-                            My Wishlist
-                          </MenuItem>
+                          <Link to="/my-account/orders">
+                            <MenuItem onClick={handleClose}>
+                              <LuShoppingBag className="mr-2" />
+                              Orders
+                            </MenuItem>
+                          </Link>
+
+                          <Link to="/my-account/wishlist">
+                            <MenuItem onClick={handleClose}>
+                              <GoHeart className="mr-2" />
+                              My Wishlist
+                            </MenuItem>
+                          </Link>
 
                           <MenuItem onClick={handleClose}>
                             <RiLogoutCircleRLine className="mr-2" />
