@@ -18,6 +18,7 @@ import MyOrders from "./pages/MyOrders";
 import MyProfile from "./pages/MyProfile";
 import MyWishlist from "./pages/MyWishlist";
 import MyAddress from "./pages/MyAddress";
+import OtpVerification from "./pages/OtpVerification";
 
 // export const MyContext = createContext();
 
@@ -44,6 +45,11 @@ function App() {
           <Route path={"/product/:slug"} exact={true} element={<Product />} />
           <Route path={"/login"} exact={true} element={<Login />} />
           <Route path={"/register"} exact={true} element={<Register />} />
+          <Route
+            path={"/otp-verification"}
+            exact={true}
+            element={<OtpVerification />}
+          />
           <Route path={"/cart"} exact={true} element={<Cart />} />
           <Route path={"/checkout"} exact={true} element={<Checkout />} />
           <Route path={"/my-account"} exact={true} element={<MyAccount />}>

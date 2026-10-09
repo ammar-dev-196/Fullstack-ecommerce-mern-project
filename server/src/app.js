@@ -39,17 +39,36 @@ app.use(
   }),
 );
 
-/*
-  Import routes.
-*/
+/**
+ * Import routes
+ */
 
-// import userRouter from "./routes/user.route.js";
+import userRouter from "./routes/users.route.js";
+import productRouter from "./routes/product.route.js";
+import categoryRouter from "./routes/category.route.js";
+import brandRouter from "./routes/brand.route.js";
+import orderRouter from "./routes/order.route.js";
+import cartRouter from "./routes/cart.route.js";
+import wishlistRouter from "./routes/wishlist.route.js";
+import productReviewRouter from "./routes/productReview.route.js";
+import paymentMethodRouter from "./routes/paymentMethod.route.js";
+import shippingMethodRouter from "./routes/shippingMethod.route.js";
+import taxRouter from "./routes/tax.route.js";
 
-// /*
-//   Routes declaration.
-// */
+/**
+ * Routes declaration.
+ */
 
-// // https://localhost:8000/api/v1/users/register
-// app.use("/api/v1/users", userRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/products", productRouter);
+app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/brands", brandRouter);
+app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/cart", cartRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/product-reviews", productReviewRouter);
+app.use("/api/v1/payment-methods", paymentMethodRouter);
+app.use("/api/v1/shipping-methods", shippingMethodRouter);
+app.use("/api/v1/taxes", taxRouter);
 
 export { app };
