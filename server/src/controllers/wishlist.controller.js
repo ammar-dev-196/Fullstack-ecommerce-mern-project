@@ -11,12 +11,8 @@ import Wishlist from "../models/wishlist.model.js";
  */
 
 export const addToWishlist = asyncHandler(async (request, response) => {
-  const { userId } = request.user?._id;
-  const productId = request.body;
-
-  // if (!userId) {
-  //   throw new ApiError(401, "Unauthorized request");
-  // }
+  const userId = request.user?._id;
+  const { productId } = request.body;
 
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     throw new ApiError(400, "Invalid Product ID format");
@@ -28,11 +24,11 @@ export const addToWishlist = asyncHandler(async (request, response) => {
       $addToSet: { products: productId },
     },
     {
-      new: true,
-      upsert: true, // If wishlist doesn't exist for this user, MongoDB creates a new one automatically!
+      returnDocument: "after",
+      upsert: true,
       setDefaultsOnInsert: true,
     },
-  ).populate("Products", "Title Product Price");
+  );
 
   return response
     .status(200)
@@ -51,7 +47,7 @@ export const addToWishlist = asyncHandler(async (request, response) => {
  * @access Private (Authenticated users only)
  */
 
-export const getAllWishlistItems = asyncHandler(async (request, response) => {
+export const getWishlistItems = asyncHandler(async (request, response) => {
   const userId = request.user?._id;
 
   // if (!userId) {
@@ -60,7 +56,11 @@ export const getAllWishlistItems = asyncHandler(async (request, response) => {
 
   const wishlist = await Wishlist.findOne({ userId }).populate({
     path: "products",
-    select: "title regularPrice salePrice",
+    select: "title regularPrice salePrice categoryId",
+    populate: {
+      path: "categoryId",
+      select: "title",
+    },
   });
 
   if (!wishlist) {
@@ -81,13 +81,12 @@ export const getAllWishlistItems = asyncHandler(async (request, response) => {
  */
 
 export const removeFromWishlist = asyncHandler(async (request, response) => {
+  const userId = request.user?._id;
   const { productId } = request.params;
 
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     throw new ApiError(400, "Invalid Product ID format");
   }
-
-  const userId = request.user?._id;
 
   // if (!userId) {
   //   throw new ApiError(401, "Unauthorized request");
@@ -99,7 +98,7 @@ export const removeFromWishlist = asyncHandler(async (request, response) => {
       $pull: { products: productId },
     },
     {
-      new: true,
+      returnDocument: "after",
     },
   );
 

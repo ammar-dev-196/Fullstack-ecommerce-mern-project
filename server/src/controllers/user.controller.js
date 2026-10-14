@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import sendingEmail from "../config/email.js";
 import verificationEmail from "../helper/VerificationEmailTemplate.js";
 import { uploadOnCloudinary } from "../utils/fileUpload.cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { v2 as cloudinary } from "cloudinary";
 
 /**
  * Generate Access and Refresh Tokens

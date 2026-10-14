@@ -14,10 +14,6 @@ export const addToCart = asyncHandler(async (request, response) => {
   const userId = request.user?._id;
   const { productId, quantity = 1 } = request.body;
 
-  // if(!userId){
-  //   throw new ApiError(401, "Unauthorized request");
-  // }
-
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     throw new ApiError(400, "Invalid ");
   }
@@ -32,7 +28,9 @@ export const addToCart = asyncHandler(async (request, response) => {
       // The $ positional operator updates the exact item matched in the array
       $inc: { "items.$.quantity": quantity },
     },
-    { new: true },
+    {
+      returnDocument: "after",
+    },
   );
 
   if (!cart) {
@@ -43,7 +41,7 @@ export const addToCart = asyncHandler(async (request, response) => {
         $push: { items: { productId, quantity } },
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         setDefaultsOnInsert: true,
       },
@@ -64,7 +62,7 @@ export const addToCart = asyncHandler(async (request, response) => {
  * @access Private (Authenticated users only)
  */
 
-export const getUserAllCartItems = asyncHandler(async (request, response) => {
+export const getUserCartItems = asyncHandler(async (request, response) => {
   const userId = request.user._id;
 
   const cart = await Cart.findOne({ userId }).populate({
@@ -81,7 +79,7 @@ export const getUserAllCartItems = asyncHandler(async (request, response) => {
           totalItems: 0,
           totalPrice: 0,
         },
-        "Your cart is currently empty",
+        "Cart is currently empty",
       ),
     );
   }
@@ -92,11 +90,15 @@ export const getUserAllCartItems = asyncHandler(async (request, response) => {
   cart.items.forEach((item) => {
     if (item.productId) {
       totalItems += item.quantity;
-      totalPrice += item.productId.price * item.quantity;
+
+      const activePrice =
+        item.productId.salePrice ?? item.productId.regularPrice;
+
+      totalPrice += activePrice * item.quantity;
     }
   });
 
-  const cartResponse = {
+  const cartItems = {
     _id: cart._id,
     userId: cart.userId,
     items: cart.items,
@@ -107,7 +109,7 @@ export const getUserAllCartItems = asyncHandler(async (request, response) => {
 
   return response
     .status(200)
-    .json(new ApiResponse(200, cartResponse, "Cart fetched successfully"));
+    .json(new ApiResponse(200, cartItems, "Cart fetched successfully"));
 });
 
 /**
@@ -117,24 +119,46 @@ export const getUserAllCartItems = asyncHandler(async (request, response) => {
  */
 
 export const removeFromCart = asyncHandler(async (request, response) => {
-  const userId = request.user?._id;
+  const userId = request.user._id;
+
   const { productId } = request.params;
 
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     throw new ApiError(400, "Invalid Product ID format");
   }
 
-  const updatedCart = await Cart.findByIdAndUpdate(
+  const updateCart = await Cart.findOneAndUpdate(
     { userId },
     {
       $pull: { items: { productId } },
     },
-    { new: true },
+    { returnDocument: "after" },
   ).populate("items.productId", "title regularPrice salePrice");
 
-  if (!updatedCart) {
-    throw new ApiError(404, "Cart not found for this user");
+  if (!updateCart) {
+    throw new ApiError(404, "Cart items not found");
   }
+
+  let totalPrice = 0;
+  let totalItems = 0;
+
+  updateCart.items.forEach((item) => {
+    if (item.productId) {
+      totalItems += item.quantity;
+      const activePrice =
+        item.productId.salePrice ?? item.productId.regularPrice;
+      totalPrice += activePrice * item.quantity;
+    }
+  });
+
+  const updatedCart = {
+    _id: updateCart._id,
+    userId: updateCart.userId,
+    items: updateCart.items,
+    totalItems,
+    totalPrice: Number(totalPrice.toFixed(2)),
+    updatedAt: updateCart.updatedAt,
+  };
 
   return response
     .status(200)
@@ -150,7 +174,7 @@ export const removeFromCart = asyncHandler(async (request, response) => {
 export const updateCartItemQuantity = asyncHandler(
   async (request, response) => {
     const { productId, adjustment } = request.body;
-    const userId = request.body;
+    const userId = request.user._id;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       throw new ApiError(400, "Invalid product ID format");
@@ -169,35 +193,60 @@ export const updateCartItemQuantity = asyncHandler(
       throw new ApiError(404, "Product not found in cart");
     }
 
-    const newQuantity = item.quantity + adjustment;
+    // const newQuantity = item.quantity + adjustment;
 
     let updatedCart;
 
     // 3. Action Rule: If it drops below 1, remove it completely (acts like a trash icon)
-    if (newQuantity < 1) {
-      updatedCart = await Cart.findOneAndUpdate(
-        { userId },
-        { $pull: { items: { productId } } },
-        { new: true },
-      );
-    } else {
-      // Otherwise, safely increment/decrement the count directly in the DB
-      updatedCart = await Cart.findOneAndUpdate(
-        { userId, "items.productId": productId },
-        { $inc: { "items.$.quantity": adjustment } },
-        { new: true },
-      );
-    }
+    // if (newQuantity < 1) {
+    //   updatedCart = await Cart.findOneAndUpdate(
+    //     { userId },
+    //     { $pull: { items: { productId } } },
+    //     { new: true },
+    //   );
+    // } else {
+    // Otherwise, safely increment/decrement the count directly in the DB
+    updatedCart = await Cart.findOneAndUpdate(
+      { userId, "items.productId": productId },
+      { $inc: { "items.$.quantity": adjustment } },
+      { returnDocument: "after", runValidators: true },
+    );
+    // }
 
     await updatedCart.populate(
       "items.productId",
       "title regularPrice salePrice",
     );
 
+    let totalPrice = 0;
+    let totalItems = 0;
+
+    updatedCart.items.forEach((item) => {
+      if (item.productId) {
+        totalItems += item.quantity;
+        const activePrice =
+          item.productId.salePrice ?? item.productId.regularPrice;
+        totalPrice += activePrice * item.quantity;
+      }
+    });
+
+    const cartItemIncrement = {
+      _id: updatedCart._id,
+      userId: updatedCart.userId,
+      items: updatedCart.items,
+      totalItems,
+      totalPrice: Number(totalPrice.toFixed(2)),
+      updatedAt: updatedCart.updatedAt,
+    };
+
     return response
       .status(200)
       .json(
-        new ApiResponse(200, updatedCart, "Cart quantity updated successfully"),
+        new ApiResponse(
+          200,
+          cartItemIncrement,
+          "Cart quantity updated successfully",
+        ),
       );
   },
 );

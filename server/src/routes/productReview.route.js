@@ -2,22 +2,22 @@ import { Router } from "express";
 import { auth, isAdmin } from "../middlewares/auth.middleware.js";
 import {
   createProductReview,
-  getAllProductReviews,
+  getProductReviews,
   updateProductReview,
   deleteProductReview,
 } from "../controllers/productReview.controller.js";
 
-const paymentMethodRouter = Router();
-paymentMethodRouter.use(auth);
+const productReviewRouter = Router();
+productReviewRouter.use(auth);
 
-paymentMethodRouter
+productReviewRouter
   .route("/")
   .post(isAdmin, createProductReview)
-  .get(isAdmin, getAllProductReviews);
+  .get(isAdmin, getProductReviews);
 
-paymentMethodRouter
+productReviewRouter
   .route("/:productReviewId")
   .patch(isAdmin, updateProductReview)
   .delete(isAdmin, deleteProductReview);
 
-export default paymentMethodRouter;
+export default productReviewRouter;

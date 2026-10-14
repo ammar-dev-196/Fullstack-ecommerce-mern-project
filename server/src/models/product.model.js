@@ -29,12 +29,15 @@ const productSchema = new mongoose.Schema(
     },
     salePrice: {
       type: Number,
+      default: null,
     },
     unitPrice: {
       type: Number,
+      default: null,
     },
     sku: {
       type: String,
+      default: null,
     },
     stockQuantity: {
       type: Number,
@@ -42,8 +45,8 @@ const productSchema = new mongoose.Schema(
     },
     featuredImage: {
       type: String,
-      // required: [true, "Featured Image is required"],
-      default: null,
+      required: [true, "Featured Image is required"],
+      // default: null,
     },
     galleryImages: {
       type: [String],

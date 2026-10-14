@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import paymentMethod from "../models/paymentMethod.model.js";
+import mongoose from "mongoose";
 
 /**
  * Add Payment Method data
@@ -13,7 +14,7 @@ export const createPaymentMethod = asyncHandler(async (request, response) => {
   const { title, paymentType, instruction, isActive } = request.body;
 
   if (!title || !paymentType) {
-    throw new ApiError(400, "Title and paymentType are required fields");
+    throw new ApiError(400, "Title and paymentType are required");
   }
 
   const newPaymentMethod = await paymentMethod.create({
@@ -40,10 +41,8 @@ export const createPaymentMethod = asyncHandler(async (request, response) => {
  * @returns {object} An object containing all payment method data
  */
 
-export const getAllPaymentMethods = asyncHandler(async (request, response) => {
-  const { id } = request.params;
-
-  const paymentMethods = await paymentMethod.findById(id);
+export const getPaymentMethods = asyncHandler(async (request, response) => {
+  const paymentMethods = await paymentMethod.find();
 
   if (!paymentMethods) {
     throw new ApiError(404, "Payment methods not found");
@@ -67,15 +66,14 @@ export const getAllPaymentMethods = asyncHandler(async (request, response) => {
  */
 
 export const updatePaymentMethod = asyncHandler(async (request, response) => {
-  const { id } = request.params;
-  const { title, paymentType, instruction, isActive } = request.body;
+  const { paymentMethodId } = request.params;
 
-  if (!title || !paymentType) {
-    throw new ApiError(400, "Title and paymentType are required fields");
+  if (!mongoose.Types.ObjectId.isValid(paymentMethodId)) {
+    throw new ApiError(400, "Invalid category ID format");
   }
 
   const updatedPaymentMethod = await paymentMethod.findByIdAndUpdate(
-    id,
+    paymentMethodId,
     {
       $set: request.body,
     },

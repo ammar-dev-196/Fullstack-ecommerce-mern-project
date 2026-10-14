@@ -2,7 +2,7 @@ import { Router } from "express";
 import { auth, isAdmin } from "../middlewares/auth.middleware.js";
 import {
   createPaymentMethod,
-  getAllPaymentMethods,
+  getPaymentMethods,
   updatePaymentMethod,
   deletePaymentMethod,
 } from "../controllers/paymentMethod.controller.js";
@@ -13,7 +13,7 @@ paymentMethodRouter.use(auth);
 paymentMethodRouter
   .route("/")
   .post(isAdmin, createPaymentMethod)
-  .get(isAdmin, getAllPaymentMethods);
+  .get(getPaymentMethods);
 
 paymentMethodRouter
   .route("/:paymentMethodId")

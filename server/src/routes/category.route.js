@@ -2,22 +2,22 @@ import { Router } from "express";
 import { auth, isAdmin } from "../middlewares/auth.middleware.js";
 import {
   createCategory,
-  getAllCategories,
+  getCategories,
   updateCategory,
   deleteCategory,
 } from "../controllers/category.controller.js";
 
 const categoryRouter = Router();
-categoryRouter.use(auth);
+// categoryRouter.use(auth);
 
 categoryRouter
   .route("/")
-  .post(isAdmin, createCategory)
-  .get(isAdmin, getAllCategories);
+  .post(auth, isAdmin, createCategory)
+  .get(getCategories);
 
 categoryRouter
   .route("/:categoryId")
-  .patch(isAdmin, updateCategory)
-  .delete(isAdmin, deleteCategory);
+  .patch(auth, isAdmin, updateCategory)
+  .delete(auth, isAdmin, deleteCategory);
 
 export default categoryRouter;

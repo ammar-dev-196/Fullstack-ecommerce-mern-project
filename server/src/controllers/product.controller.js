@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
+import { uploadOnCloudinary } from "../utils/fileUpload.cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 
 /**
  * Add product data
@@ -21,14 +23,42 @@ export const createProduct = asyncHandler(async (request, response) => {
     salePrice,
     unitPrice,
     stockQuantity,
-    featuredImage,
-    galleryImages,
+    // featuredImage,
+    // galleryImages,
     isFeatured,
     slug,
   } = request.body;
 
   if (!title || !regularPrice || !stockQuantity || !slug) {
     throw new ApiError(400, "Fields are required");
+  }
+
+  // const featuredImageFile = request.files?.path;
+  // const galleryImageFiles = request.files?.path || [];
+
+  const featuredImageFile = request.files?.featuredImage?.[0];
+  const galleryImageFiles = request.files?.galleryImages || [];
+
+  if (!featuredImageFile) {
+    throw new ApiError(400, "Featured image is required");
+  }
+
+  // 3. Upload single featured image to Cloudinary
+  const featuredImageUrl = await uploadOnCloudinary(featuredImageFile.path);
+  if (!featuredImageUrl) {
+    throw new ApiError(500, "Failed to upload featured image to Cloudinary");
+  }
+
+  // 4. Upload multiple gallery images concurrently
+  const galleryUrls = [];
+  if (galleryImageFiles.length > 0) {
+    const uploadPromises = galleryImageFiles.map((file) =>
+      uploadOnCloudinary(file.path),
+    );
+    const uploadedUrls = await Promise.all(uploadPromises);
+
+    // Filter out any failed uploads (nulls) and push to array
+    galleryUrls.push(...uploadedUrls.filter((url) => url !== null));
   }
 
   const product = await Product.create({
@@ -41,8 +71,8 @@ export const createProduct = asyncHandler(async (request, response) => {
     salePrice,
     unitPrice,
     stockQuantity,
-    featuredImage,
-    galleryImages,
+    featuredImage: featuredImageUrl,
+    galleryImages: galleryUrls,
     isFeatured,
     slug,
   });
@@ -58,19 +88,19 @@ export const createProduct = asyncHandler(async (request, response) => {
  * @returns {object} An object containing all product data
  */
 
-export const getAllProducts = asyncHandler(async (request, response) => {
+export const getProducts = asyncHandler(async (request, response) => {
   // const { id } = request.params;
   // const product = await Product.findById(id);
 
-  const product = await Product.find();
+  const products = await Product.find();
 
-  if (!product) {
+  if (!products) {
     throw new ApiError(404, "Product not found");
   }
 
   return response
     .status(200)
-    .json(new ApiResponse(200, product, "Product fetched successfully"));
+    .json(new ApiResponse(200, products, "Product fetched successfully"));
 });
 
 /**
@@ -86,10 +116,42 @@ export const updateProduct = asyncHandler(async (request, response) => {
     throw new ApiError(400, "Invalid product ID format");
   }
 
+  // const featuredImageFile = request.files?.path;
+  // const galleryImageFiles = request.files?.path || [];
+
+  const featuredImageFile = request.files?.featuredImage?.[0];
+  const galleryImageFiles = request.files?.galleryImages || [];
+
+  if (!featuredImageFile) {
+    throw new ApiError(400, "Featured image is required");
+  }
+
+  // 3. Upload single featured image to Cloudinary
+  const featuredImageUrl = await uploadOnCloudinary(featuredImageFile.path);
+  if (!featuredImageUrl) {
+    throw new ApiError(500, "Failed to upload featured image to Cloudinary");
+  }
+
+  // 4. Upload multiple gallery images concurrently
+  const galleryUrls = [];
+  if (galleryImageFiles.length > 0) {
+    const uploadPromises = galleryImageFiles.map((file) =>
+      uploadOnCloudinary(file.path),
+    );
+    const uploadedUrls = await Promise.all(uploadPromises);
+
+    // Filter out any failed uploads (nulls) and push to array
+    galleryUrls.push(...uploadedUrls.filter((url) => url !== null));
+  }
+
   const updatedproduct = await Product.findByIdAndUpdate(
     productId,
     {
-      $set: request.body,
+      $set: {
+        ...request.body,
+        featuredImage: featuredImageUrl,
+        galleryImages: galleryUrls,
+      },
     },
     {
       returnDocument: "after",

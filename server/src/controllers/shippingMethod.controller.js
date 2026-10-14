@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import shippingMethod from "../models/shippingMethod.model.js";
+import mongoose from "mongoose";
 
 /**
  * Add shipping method data
@@ -38,22 +39,20 @@ export const createShippingMethod = asyncHandler(async (request, response) => {
  * @returns {object} An object containing all product data
  */
 
-export const getAllShippingMethods = asyncHandler(async (request, response) => {
-  // const { id } = request.params;
-  // const shippingMethods = await shippingMethod.findById(id);
+export const getShippingMethods = asyncHandler(async (request, response) => {
+  const shippingMethods = await shippingMethod.find();
 
-  const shippingMethod = await shippingMethod.find();
-
-  if (!shippingMethod) {
+  if (!shippingMethods) {
     throw new ApiError(404, "Shipping methods not found");
   }
+
   return response
     .status(200)
     .json(
       new ApiResponse(
         200,
-        shippingMethod,
-        "Shipping methods retrieved successfully",
+        shippingMethods,
+        "Shipping method fetched successfully",
       ),
     );
 });

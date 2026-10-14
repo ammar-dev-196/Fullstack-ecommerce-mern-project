@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import Tax from "../models/tax.model.js";
+import mongoose from "mongoose";
 
 /**
  * Add tax data
@@ -16,7 +17,7 @@ export const createTax = asyncHandler(async (request, response) => {
     throw new ApiError(400, "Title, tax type and rate fields are required!");
   }
 
-  const newTax = await Tax.create({
+  const addTax = await Tax.create({
     title,
     taxType,
     rate,
@@ -25,7 +26,7 @@ export const createTax = asyncHandler(async (request, response) => {
 
   return response
     .status(201)
-    .json(new ApiResponse(201, newTax, "Tax created successfully"));
+    .json(new ApiResponse(201, addTax, "Tax created successfully"));
 });
 
 /**
@@ -34,10 +35,8 @@ export const createTax = asyncHandler(async (request, response) => {
  * @returns {object} An object containing all product data
  */
 
-export const getAllTaxes = asyncHandler(async (request, response) => {
-  const { id } = request.params;
-
-  const taxes = await Tax.find(id);
+export const getTaxes = asyncHandler(async (request, response) => {
+  const taxes = await Tax.find();
 
   if (!taxes) {
     throw new ApiError(404, "Taxes not found");
@@ -55,17 +54,21 @@ export const getAllTaxes = asyncHandler(async (request, response) => {
  */
 
 export const updateTax = asyncHandler(async (request, response) => {
-  const { id } = request.params;
-  const { title, taxType, rate, isActive } = request.body;
+  const { taxId } = request.params;
 
-  if (!title || !taxType || !rate) {
-    throw new ApiError(400, "Title, tax type and rate fields are required!");
+  if (!mongoose.Types.ObjectId.isValid(taxId)) {
+    throw new ApiError(400, "Invalid tax ID format");
   }
 
   const updatedTax = await Tax.findByIdAndUpdate(
-    id,
-    { title, taxType, rate, isActive },
-    { new: true },
+    taxId,
+    {
+      $set: request.body,
+    },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
   );
 
   if (!updatedTax) {
@@ -84,9 +87,9 @@ export const updateTax = asyncHandler(async (request, response) => {
  */
 
 export const deleteTax = asyncHandler(async (request, response) => {
-  const { id } = request.params;
+  const { taxId } = request.params;
 
-  const deletedTax = await Tax.findByIdAndDelete(id);
+  const deletedTax = await Tax.findByIdAndDelete(taxId);
 
   if (!deletedTax) {
     throw new ApiError(404, "Tax not found");
@@ -94,5 +97,5 @@ export const deleteTax = asyncHandler(async (request, response) => {
 
   return response
     .status(200)
-    .json(new ApiResponse(200, deletedTax, "Tax deleted successfully"));
+    .json(new ApiResponse(200, null, "Tax deleted successfully"));
 });

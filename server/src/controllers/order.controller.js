@@ -13,7 +13,8 @@ import { ApiError } from "../utils/ApiError.js";
  */
 
 export const createOrder = asyncHandler(async (request, response) => {
-  const userId = request.user._id; // Provided by verifyJWT middleware
+  const userId = request.user._id;
+
   const {
     addressId, // Provided if choosing a saved address
     newAddress, // Provided if typing a new address for the first time
@@ -25,7 +26,7 @@ export const createOrder = asyncHandler(async (request, response) => {
   } = request.body;
 
   if (!shippingMethodTitle) {
-    throw new ApiError(400, "Shipping method selection is mandatory");
+    throw new ApiError(400, "Select Shipping method");
   }
 
   // 1. Resolve Shipping Address Data
@@ -83,14 +84,14 @@ export const createOrder = asyncHandler(async (request, response) => {
     // Neither was sent
     throw new ApiError(
       400,
-      "Please provide a valid saved address ID or enter new delivery details",
+      "Please provide a valid saved address ID or enter new address details",
     );
   }
 
   // 2. Fetch active user cart data
   const cart = await Cart.findOne({ userId }).populate("items.productId");
   if (!cart || cart.items.length === 0) {
-    throw new ApiError(400, "Your shopping cart is empty");
+    throw new ApiError(400, "Shopping cart is empty");
   }
 
   // 3. Map Cart entries into snapshot Order array entries
@@ -104,14 +105,15 @@ export const createOrder = asyncHandler(async (request, response) => {
       );
     }
 
-    itemsSubtotal += product.price * item.quantity;
+    itemsSubtotal +=
+      (product.salePrice ?? product.regularPrice) * item.quantity;
 
     return {
       productId: product._id,
       title: product.title,
       sku: product.sku,
       quantity: item.quantity,
-      priceAtPurchase: product.regularPrice,
+      priceAtPurchase: product.salePrice ?? product.regularPrice,
     };
   });
 
@@ -159,19 +161,67 @@ export const createOrder = asyncHandler(async (request, response) => {
   // 8. Send structured response payload
   return response
     .status(201)
+    .json(new ApiResponse(201, newOrder, "Order placed successfully"));
+});
+
+/**
+ * User order history
+ * @route GET api/v1/orders/:userId
+ * @access private (Authenticated users only)
+ */
+
+export const getUserOrders = asyncHandler(async (request, response) => {
+  const { userId } = request.params;
+
+  const userOrderList = await Order.find({ userId }).sort({ createdAt: -1 });
+
+  return response
+    .status(200)
     .json(
-      new ApiResponse(
-        201,
-        newOrder,
-        "Order successfully processed and address recorded",
-      ),
+      new ApiResponse(200, userOrderList, "Order list fetched successfully"),
     );
 });
 
 /**
  * Fetch order list
  * @route GET api/v1/orders/
- * @access private (Authenticated users only)
+ * @access private (Authenticated Admin only)
  */
 
-export const orderList = asyncHandler(async (request, response) => {});
+export const getOrders = asyncHandler(async (request, response) => {
+  const orders = await Order.find({})
+    .populate("userId", "username email")
+    .sort({ createdAt: -1 });
+
+  if (!orders) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return response
+    .status(200)
+    .json(new ApiResponse(200, orders, "Order list fetched successfully"));
+});
+
+/**
+ * Fetch specific order details
+ * @route GET api/v1/orders/:orderId
+ * @access private (Authenticated Admin only)
+ */
+
+export const viewOrderDetails = asyncHandler(async (request, response) => {
+  const { orderId } = request.params;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, "Invalid order ID format");
+  }
+
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return response
+    .status(200)
+    .json(new ApiResponse(200, order, "Order details fetched successfully"));
+});

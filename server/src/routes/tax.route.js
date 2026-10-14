@@ -2,7 +2,7 @@ import { Router } from "express";
 import { auth, isAdmin } from "../middlewares/auth.middleware.js";
 import {
   createTax,
-  getAllTaxes,
+  getTaxes,
   updateTax,
   deleteTax,
 } from "../controllers/tax.controller.js";
@@ -10,7 +10,7 @@ import {
 const taxRouter = Router();
 taxRouter.use(auth);
 
-taxRouter.route("/").post(isAdmin, createTax).get(isAdmin, getAllTaxes);
+taxRouter.route("/").post(isAdmin, createTax).get(isAdmin, getTaxes);
 
 taxRouter.route("/:taxId").patch(isAdmin, updateTax).delete(isAdmin, deleteTax);
 

@@ -2,6 +2,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import Brand from "../models/brand.model.js";
+import mongoose from "mongoose";
+import { uploadOnCloudinary } from "../utils/fileUpload.cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 
 /**
  * Add brand data
@@ -10,16 +13,35 @@ import Brand from "../models/brand.model.js";
  */
 
 export const createBrand = asyncHandler(async (request, response) => {
-  const { name, slug, isActive } = request.body;
+  const { name, slug } = request.body;
 
   if (!name || !slug) {
     throw new ApiError(400, "Name and slug are required fields");
   }
 
+  const existinglogo = await Brand.findById(request.user?._id);
+
+  if (existinglogo?.logoUrl) {
+    const publicId = existinglogo.logoUrl.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(publicId);
+  }
+
+  const logoLocalPath = request.file?.path;
+
+  if (!logoLocalPath) {
+    throw new ApiError(400, "logoUrl is required");
+  }
+
+  const logoUrl = await uploadOnCloudinary(logoLocalPath);
+
+  if (!logoUrl) {
+    throw new ApiError(400, "Error while uploading");
+  }
+
   const brand = await Brand.create({
     name,
     slug,
-    isActive,
+    logoUrl: logoUrl.url,
   });
 
   return response
@@ -33,7 +55,7 @@ export const createBrand = asyncHandler(async (request, response) => {
  * @returns {object} An object containing all brand data
  */
 
-export const getAllBrands = asyncHandler(async (request, response) => {
+export const getBrands = asyncHandler(async (request, response) => {
   const brand = await Brand.find();
 
   if (!brand) {
@@ -58,10 +80,32 @@ export const updateBrand = asyncHandler(async (request, response) => {
     throw new ApiError(400, "Invalid brand ID format");
   }
 
+  const existinglogo = await Brand.findById(request.user?._id);
+
+  if (existinglogo?.logoUrl) {
+    const publicId = existinglogo.logoUrl.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(publicId);
+  }
+
+  const logoLocalPath = request.file?.path;
+
+  if (!logoLocalPath) {
+    throw new ApiError(400, "logoUrl is required");
+  }
+
+  const logoUrl = await uploadOnCloudinary(logoLocalPath);
+
+  if (!logoUrl) {
+    throw new ApiError(400, "Error while uploading");
+  }
+
   const updatedBrand = await Brand.findByIdAndUpdate(
     brandId,
     {
-      $set: request.body,
+      $set: {
+        ...request.body,
+        logoUrl: logoUrl.url,
+      },
     },
     {
       returnDocument: "after",
@@ -70,7 +114,7 @@ export const updateBrand = asyncHandler(async (request, response) => {
   );
 
   if (!updatedBrand) {
-    throw new ApiError(404, "Product not found");
+    throw new ApiError(404, "Brand not found");
   }
 
   return response
@@ -85,15 +129,15 @@ export const updateBrand = asyncHandler(async (request, response) => {
  */
 
 export const deleteBrand = asyncHandler(async (request, response) => {
-  const { id } = request.params;
+  const { brandId } = request.params;
 
-  const brand = await Brand.findById(id);
+  const brand = await Brand.findById(brandId);
 
   if (!brand) {
     throw new ApiError(404, "Brand not found");
   }
 
-  await Brand.findByIdAndDelete(id);
+  await Brand.findByIdAndDelete(brandId);
 
   return response
     .status(200)

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { auth, isAdmin } from "../middlewares/auth.middleware.js";
 import {
   createBrand,
-  getAllBrands,
+  getBrands,
   updateBrand,
   deleteBrand,
 } from "../controllers/brand.controller.js";
@@ -10,7 +10,7 @@ import {
 const brandRouter = Router();
 brandRouter.use(auth);
 
-brandRouter.route("/").post(isAdmin, createBrand).get(isAdmin, getAllBrands);
+brandRouter.route("/").post(isAdmin, createBrand).get(isAdmin, getBrands);
 
 brandRouter
   .route("/:brandId")
